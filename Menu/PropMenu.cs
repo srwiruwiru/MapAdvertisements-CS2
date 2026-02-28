@@ -115,7 +115,7 @@ public partial class PluginMenu
 
         menu.AddMenuOption(_plugin.Localizer["SavePropConfig"], (p, o) =>
         {
-            _plugin.PropManager!.SavePropConfiguration(entity.As<CPhysicsPropOverride>(), prop);
+            _plugin.PropManager!.SavePropConfiguration(entity.As<CDynamicProp>(), prop);
             p.PrintToChat($"{_plugin.Localizer["Prefix"]}{_plugin.Localizer["SavedProp", prop.Id]}");
             Server.NextFrame(() => EditPropsMenu(p));
         });
@@ -139,7 +139,7 @@ public partial class PluginMenu
             var mat = material;
             menu.AddMenuOption(mat, (p, o) =>
             {
-                var old = entity.As<CPhysicsPropOverride>();
+                var old = entity.As<CDynamicProp>();
                 var pos = old.AbsOrigin;
                 var ang = old.AbsRotation;
                 old.Remove();

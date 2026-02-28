@@ -69,6 +69,8 @@ public class EventManager(MapAdvertisements plugin)
         if (pawn == null) return HookResult.Continue;
         if (!selected!.onPing) return HookResult.Continue;
 
+        selected.onPing = false;
+
         if (_plugin.PluginUtils!.CheckMaterial(selected.material!))
         {
             _plugin.PluginUtils!.CreatePropModelOnClick(

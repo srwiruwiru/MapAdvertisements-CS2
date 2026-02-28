@@ -15,6 +15,21 @@ namespace MapAdvertisements.Managers
         public readonly List<PropModel> _props = [];
         private static readonly object _fileLock = new();
 
+        private string ResolveMapFilePath()
+        {
+            if (!string.IsNullOrEmpty(_mapFilePath))
+                return _mapFilePath;
+
+            var currentMap = Server.MapName;
+            if (string.IsNullOrEmpty(currentMap))
+                currentMap = "unknown";
+
+            _mapName = currentMap;
+            _mapFilePath = Path.Combine(_plugin.ModuleDirectory, "maps", $"{currentMap}.json");
+            GenerateJsonFile();
+            return _mapFilePath;
+        }
+
         public void GenerateJsonFile()
         {
             string directoryPath = Path.Combine(_plugin.ModuleDirectory, "maps");
@@ -22,8 +37,8 @@ namespace MapAdvertisements.Managers
             {
                 if (!Directory.Exists(directoryPath))
                     Directory.CreateDirectory(directoryPath);
-                if (!File.Exists(_mapFilePath))
-                    File.WriteAllText(_mapFilePath!, "[]");
+                if (!string.IsNullOrEmpty(_mapFilePath) && !File.Exists(_mapFilePath))
+                    File.WriteAllText(_mapFilePath, "[]");
             }
             catch (Exception e)
             {
@@ -36,6 +51,8 @@ namespace MapAdvertisements.Managers
             lock (_fileLock)
             {
                 if (pos == null || angle == null) return null;
+
+                var filePath = ResolveMapFilePath();
                 int newId = _props.Count;
 
                 var model = new PropModel
@@ -58,7 +75,7 @@ namespace MapAdvertisements.Managers
                 _props.Add(model);
 
                 var options = new JsonSerializerOptions { WriteIndented = true };
-                File.WriteAllText(_mapFilePath!, JsonSerializer.Serialize(_props, options));
+                File.WriteAllText(filePath, JsonSerializer.Serialize(_props, options));
                 return model;
             }
         }
@@ -103,12 +120,14 @@ namespace MapAdvertisements.Managers
 
         public void RemovePropFromFile(int id)
         {
+            var filePath = ResolveMapFilePath();
+
             _props.RemoveAt(id);
             for (int i = 0; i < _props.Count; i++)
                 _props[i].Id = i;
 
             var options = new JsonSerializerOptions { WriteIndented = true };
-            File.WriteAllText(_mapFilePath!, JsonSerializer.Serialize(_props, options));
+            File.WriteAllText(filePath, JsonSerializer.Serialize(_props, options));
         }
 
         public void SavePropConfiguration(CBaseEntity entity, PropModel prop)
@@ -128,8 +147,9 @@ namespace MapAdvertisements.Managers
                 prop.height = ent.Height;
             }
 
+            var filePath = ResolveMapFilePath();
             var options = new JsonSerializerOptions { WriteIndented = true };
-            File.WriteAllText(_mapFilePath!, JsonSerializer.Serialize(_props, options));
+            File.WriteAllText(filePath, JsonSerializer.Serialize(_props, options));
         }
 
         public void SaveAllAdverts()
@@ -153,8 +173,9 @@ namespace MapAdvertisements.Managers
                 }
             }
 
+            var filePath = ResolveMapFilePath();
             var options = new JsonSerializerOptions { WriteIndented = true };
-            File.WriteAllText(_mapFilePath!, JsonSerializer.Serialize(_props, options));
+            File.WriteAllText(filePath, JsonSerializer.Serialize(_props, options));
         }
     }
 }

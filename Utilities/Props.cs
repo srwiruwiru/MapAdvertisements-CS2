@@ -6,13 +6,12 @@ namespace MapAdvertisements.Utils;
 
 public partial class PluginUtils
 {
-    public CPhysicsPropOverride? CreatePropModel(Vector cords, QAngle angle, string material, bool onGround, int materialIndex, int propId)
+    public CDynamicProp? CreatePropModel(Vector cords, QAngle angle, string material, bool onGround, int materialIndex, int propId)
     {
-        var entity = Utilities.CreateEntityByName<CPhysicsPropOverride>("prop_physics_override");
+        var entity = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic");
         if (entity == null) return null;
 
         entity.Entity!.Name = $"advert_prop{propId}";
-        entity.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags &= ~(uint)(1 << 2);
         entity.SetModel(material);
         entity.Teleport(new Vector(cords.X, cords.Y, cords.Z), angle);
 
@@ -26,13 +25,12 @@ public partial class PluginUtils
         return entity;
     }
 
-    public CPhysicsPropOverride? CreatePropModelOnClick(Vector cords, QAngle angle, string material, bool onGround, int materialIndex)
+    public CDynamicProp? CreatePropModelOnClick(Vector cords, QAngle angle, string material, bool onGround, int materialIndex)
     {
-        var entity = Utilities.CreateEntityByName<CPhysicsPropOverride>("prop_physics_override");
+        var entity = Utilities.CreateEntityByName<CDynamicProp>("prop_dynamic");
         if (entity == null) return null;
 
         entity.Entity!.Name = "advert_prop";
-        entity.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags &= ~(uint)(1 << 2);
         entity.SetModel(material);
         entity.Teleport(new Vector(cords.X, cords.Y, cords.Z), angle);
 

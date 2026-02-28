@@ -1,8 +1,8 @@
 {
-  "Prefix": "{lime}[Poor-MapAdvertisements]{default}",
+  "Prefix": "{lime}[MapAdvertisements]{default}",
   "NoAccess": "{red}You have no access to this command!",
   "NoArg": "{red}Arguments are invalid!",
-  "MapAdvertMenu_Header": "Poor Map Advertisements",
+  "MapAdvertMenu_Header": "Map Advertisements",
   "CreatePropMenu": "Create a Prop",
   "Prop_Header": "Create a prop",
   "ChooseMaterial": "Choose material",

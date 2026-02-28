@@ -12,10 +12,10 @@ namespace MapAdvertisements.Config
         public string[] Props { get; set; } = [];
 
         [JsonPropertyName("Custom Position Values")]
-        public int[] CustomPositionValues { get; set; } = [1, 5, 10];
+        public float[] CustomPositionValues { get; set; } = [0.25f, 0.5f, 1f, 5f, 10f];
 
         [JsonPropertyName("Custom Angle Values")]
-        public int[] CustomAngleValues { get; set; } = [1, 5, 10];
+        public float[] CustomAngleValues { get; set; } = [0.25f, 0.5f, 1f, 5f, 10f];
 
         [JsonPropertyName("Enable commands")]
         public bool EnableCMD { get; set; } = true;

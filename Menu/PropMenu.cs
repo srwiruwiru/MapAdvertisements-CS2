@@ -1,6 +1,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
+using MenuManager;
 
 using MapAdvertisements.Models;
 
@@ -8,248 +9,146 @@ namespace MapAdvertisements.Menu;
 
 public partial class PluginMenu
 {
-    public void CreatePropMenu(CCSPlayerController player, WasdMenu? prevMenu)
+    public void CreatePropMenu(CCSPlayerController player)
     {
-        if (player == null) return;
-        var pawn = player.PlayerPawn.Value;
-        if (pawn == null || !pawn.IsValid) return;
+        var api = _plugin.MenuApi;
+        if (api == null) return;
 
         if (!_selectedMaterial.TryGetValue(player, out var data))
         {
-            data = new SelectedMaterialModel
-            {
-                material = null,
-                isVip = false,
-                isOnGround = false,
-                materialIndex = 0,
-                width = 0,
-                height = 0,
-                depth = 0,
-                onPing = false,
-            };
+            data = new SelectedMaterialModel();
             _selectedMaterial[player] = data;
         }
 
-        WasdMenu menu = new($"{_plugin.Localizer["Prop_Header"]}", _plugin);
+        var menu = api.GetMenu(_plugin.Localizer["Prop_Header"]);
+        menu.AddMenuOption(
+            data.material ?? _plugin.Localizer["ChooseMaterial"],
+            (p, o) => { }, disabled: true);
 
-        menu.AddItem(_selectedMaterial[player].material != null ? _selectedMaterial[player].material! : $"{_plugin.Localizer["ChooseMaterial"]}", DisableOption.DisableHideNumber);
+        menu.AddMenuOption(_plugin.Localizer["Material_Header"],
+            (p, o) => PropMaterialsMenu(p));
 
-        menu.AddItem($"{_plugin.Localizer["Material_Header"]}", (p, o) =>
+        menu.AddMenuOption(_plugin.Localizer["SpawnOnPing", data.onPing], (p, o) =>
         {
-            PropMaterialsMenu(player, menu);
-        });
+            data.onPing = !data.onPing;
+            Server.NextFrame(() => CreatePropMenu(p));
+        }, disabled: data.material == null);
 
-        menu.AddItem($"{_plugin.Localizer["VipOnly", data.isVip]}", (p, o) =>
-        {
-            if (data.isVip)
-            {
-                data.isVip = false;
-            }
-            else
-            {
-                data.isVip = true;
-            }
-
-            Server.NextFrame(() =>
-            {
-                CreatePropMenu(player, prevMenu);
-            });
-        });
-
-        menu.AddItem($"{_plugin.Localizer["SpawnOnPing", _selectedMaterial[player].onPing]} ", (p, o) =>
-        {
-            if (_selectedMaterial[player].onPing) _selectedMaterial[player].onPing = false;
-            else _selectedMaterial[player].onPing = true;
-
-            Server.NextFrame(() =>
-            {
-                CreatePropMenu(player, prevMenu);
-            });
-
-        }, disableOption: _selectedMaterial[player].material == null
-        ? DisableOption.DisableHideNumber
-        : DisableOption.None);
-
-        menu.PrevMenu = prevMenu;
-        menu.Display(player, 0);
+        menu.AddMenuOption($"← {_plugin.Localizer["Menu_Back"]}", (p, o) => ShowMapAdvertMenu(p));
+        menu.Open(player);
     }
 
-    private void PropMaterialsMenu(CCSPlayerController player, WasdMenu prevMenu)
+    private void PropMaterialsMenu(CCSPlayerController player)
     {
-        if (player == null) return;
-        WasdMenu menu = new($"{_plugin.Localizer["Material_Header"]}", _plugin);
+        var api = _plugin.MenuApi;
+        if (api == null) return;
+
+        var menu = api.GetMenu(_plugin.Localizer["Material_Header"]);
         foreach (var material in _plugin.Config.Props)
         {
-            if (_plugin.PluginUtils!.CheckMaterial(material))
+            if (!_plugin.PluginUtils!.CheckMaterial(material)) continue;
+            var mat = material;
+            menu.AddMenuOption(mat, (p, o) =>
             {
-                menu.AddItem(material, (p, o) =>
-                {
-                    if (!_selectedMaterial.ContainsKey(player))
-                    {
-                        _selectedMaterial.TryAdd(player, new SelectedMaterialModel
-                        {
-                            material = material,
-                            isVip = false,
-                            isOnGround = false,
-                            materialIndex = 0
-                        });
-                    }
-                    else
-                    {
-                        _selectedMaterial[player].material = material;
-                    }
-                    o.PostSelectAction = PostSelectAction.Close;
+                if (!_selectedMaterial.ContainsKey(p))
+                    _selectedMaterial[p] = new SelectedMaterialModel { material = mat };
+                else
+                    _selectedMaterial[p].material = mat;
 
-                    Server.NextFrame(() =>
-                    {
-                        CreatePropMenu(player, (WasdMenu)prevMenu.PrevMenu!);
-                    });
-
-                });
-            }
+                Server.NextFrame(() => CreatePropMenu(p));
+            });
         }
-        menu.PrevMenu = prevMenu;
-        menu.Display(player, 0);
+
+        menu.AddMenuOption($"← {_plugin.Localizer["Menu_Back"]}", (p, o) => CreatePropMenu(p));
+        menu.Open(player);
     }
 
-    private void EditPropsMenu(CCSPlayerController player, WasdMenu prevMenu)
+    private void EditPropsMenu(CCSPlayerController player)
     {
-        if (player == null) return;
-        WasdMenu menu = new($"{_plugin.Localizer["ListOfProps_Header"]}", _plugin);
+        var api = _plugin.MenuApi;
+        if (api == null) return;
+
+        var menu = api.GetMenu(_plugin.Localizer["ListOfProps_Header"]);
         foreach (var prop in _plugin.PropManager!._props)
         {
-            if (_plugin.PluginUtils!.CheckMaterial(prop.modelPath!))
-            {
-                menu.AddItem($"{prop.Id}", (p, o) =>
-                {
-                    EditSpecificProp(player, menu, prop, prop.Id);
-                });
-            }
+            if (!_plugin.PluginUtils!.CheckMaterial(prop.modelPath!)) continue;
+            var p2 = prop;
+            menu.AddMenuOption($"#{p2.Id} — {p2.modelPath}", (p, o) =>
+                EditSpecificProp(p, p2));
         }
-        menu.PrevMenu = prevMenu;
-        menu.Display(player, 0);
+
+        menu.AddMenuOption($"← {_plugin.Localizer["Menu_Back"]}", (p, o) => ShowMapAdvertMenu(p));
+        menu.Open(player);
     }
 
-    private void EditSpecificProp(CCSPlayerController player, WasdMenu prevMenu, PropModel prop, int propId)
+    private void EditSpecificProp(CCSPlayerController player, PropModel prop)
     {
-
-        if (player == null) return;
+        var api = _plugin.MenuApi;
+        if (api == null) return;
 
         var pawn = player.PlayerPawn.Value;
         if (pawn == null || !pawn.IsValid) return;
 
-        WasdMenu menu = new($"{_plugin.Localizer["EditProp_Header", propId]}", _plugin);
-
         var entity = prop.EntityProp;
         if (entity == null) return;
 
-        menu.AddItem($"{_plugin.Localizer["TeleportToAdv"]}", (p, o) =>
-        {
-            pawn.Teleport(new Vector(prop.posX, prop.posY, prop.posZ));
+        var menu = api.GetMenu(_plugin.Localizer["EditProp_Header", prop.Id]);
+        menu.AddMenuOption(_plugin.Localizer["TeleportToAdv"], (p, o) =>
+            pawn.Teleport(new Vector(prop.posX, prop.posY, prop.posZ)));
 
-            o.PostSelectAction = PostSelectAction.Nothing;
+        menu.AddMenuOption(_plugin.Localizer["ChooseMaterial"], (p, o) =>
+            PropMaterialEdit(p, prop));
+
+        menu.AddMenuOption($"{_plugin.Localizer["SelectPropSkin"]} {prop.ModelGroupIndex}", (p, o) =>
+        {
+            _listenForChat[p] = prop;
+            p.PrintToChat($"{_plugin.Localizer["Prefix"]}{_plugin.Localizer["NotificationSkin"]}");
         });
 
-        menu.AddItem($"{_plugin.Localizer["VipOnly", prop.forceOnVip]}", (p, o) =>
-        {
-            if (prop.forceOnVip == true)
-            {
-                prop.forceOnVip = false;
-            }
-            else
-            {
-                prop.forceOnVip = true;
-            }
+        menu.AddMenuOption(_plugin.Localizer["ChangePositionAdvert"], (p, o) =>
+            CordsMenu(p, prop, prop.Id, 0, pl => EditSpecificProp(pl, prop)));
 
-            Server.NextFrame(() =>
-            {
-                EditSpecificProp(player, prevMenu, prop, propId);
-            });
-        });
+        menu.AddMenuOption(_plugin.Localizer["ChangeAnglesAdvert"], (p, o) =>
+            CordsMenu(p, prop, prop.Id, 1, pl => EditSpecificProp(pl, prop)));
 
-        menu.AddItem($"{_plugin.Localizer["ChooseMaterial"]}", (p, o) =>
-        {
-            PropMaterialEdit(player, menu, prop, propId);
-
-            o.PostSelectAction = PostSelectAction.Close;
-        });
-
-        menu.AddItem($"{_plugin.Localizer["SelectPropSkin"]} {prop.ModelGroupIndex}", (p, o) =>
-        {
-            _listenForChat.Add(player, prop);
-
-            player.PrintToChat($"{_plugin.Localizer["Prefix"]}{_plugin.Localizer["NotificationSkin"]}");
-
-            o.PostSelectAction = PostSelectAction.Nothing;
-        });
-
-
-        menu.AddItem($"{_plugin.Localizer[$"ChangePositionAdvert"]}", (p, o) =>
-        {
-            CordsMenu(player, menu, prop, propId, 0);
-        });
-
-        menu.AddItem($"{_plugin.Localizer[$"ChangeAnglesAdvert"]}", (p, o) =>
-        {
-            CordsMenu(player, menu, prop, propId, 1);
-        });
-        menu.AddItem($"{_plugin.Localizer[$"ConfigChangePositionAdvert"]}", (p, o) =>
-        {
-            CordsMenu(player, menu, prop, propId, 3);
-        });
-        menu.AddItem($"{_plugin.Localizer[$"ConfigChangeAnglesAdvert"]}", (p, o) =>
-        {
-            CordsMenu(player, menu, prop, propId, 2);
-        });
-
-        menu.AddItem($"{_plugin.Localizer[$"SavePropConfig"]}", (p, o) =>
+        menu.AddMenuOption(_plugin.Localizer["SavePropConfig"], (p, o) =>
         {
             _plugin.PropManager!.SavePropConfiguration(entity.As<CPhysicsPropOverride>(), prop);
-            player.PrintToChat($"{_plugin.Localizer["Prefix"]}{_plugin.Localizer[$"SavedProp", prop.Id]}");
-            Server.NextFrame(() =>
-            {
-                EditPropsMenu(player, (WasdMenu)prevMenu.PrevMenu!);
-            });
+            p.PrintToChat($"{_plugin.Localizer["Prefix"]}{_plugin.Localizer["SavedProp", prop.Id]}");
+            Server.NextFrame(() => EditPropsMenu(p));
         });
 
-        menu.PrevMenu = prevMenu;
-        menu.Display(player, 0);
+        menu.AddMenuOption($"← {_plugin.Localizer["Menu_Back"]}", (p, o) => EditPropsMenu(p));
+        menu.Open(player);
     }
 
-
-    private void PropMaterialEdit(CCSPlayerController player, WasdMenu prevMenu, PropModel prop, int propId)
+    private void PropMaterialEdit(CCSPlayerController player, PropModel prop)
     {
-        if (player == null) return;
-        WasdMenu menu = new($"{_plugin.Localizer["Material_Header"]}", _plugin);
+        var api = _plugin.MenuApi;
+        if (api == null) return;
 
         var entity = prop.EntityProp;
         if (entity == null) return;
 
+        var menu = api.GetMenu(_plugin.Localizer["Material_Header"]);
         foreach (var material in _plugin.Config.Props)
         {
-            if (_plugin.PluginUtils!.CheckMaterial(material))
+            if (!_plugin.PluginUtils!.CheckMaterial(material)) continue;
+            var mat = material;
+            menu.AddMenuOption(mat, (p, o) =>
             {
-                menu.AddItem(material, (p, o) =>
-                {
-                    var oldProp = entity.As<CPhysicsPropOverride>();
-                    var pos = oldProp.AbsOrigin;
-                    var angle = oldProp.AbsRotation;
+                var old = entity.As<CPhysicsPropOverride>();
+                var pos = old.AbsOrigin;
+                var ang = old.AbsRotation;
+                old.Remove();
 
-                    oldProp.Remove();
-
-                    prop.modelPath = material;
-
-                    var newProp = _plugin.PluginUtils!.CreatePropModel(pos!, angle!, material, prop.forceOnVip, prop.isOnGround, prop.ModelGroupIndex, prop.Id);
-                    prop.EntityProp = newProp;
-                    o.PostSelectAction = PostSelectAction.Nothing;
-                    Server.NextFrame(() =>
-                    {
-                        EditSpecificProp(player, prevMenu, prop, propId);
-                    });
-                });
-            }
+                prop.modelPath = mat;
+                prop.EntityProp = _plugin.PluginUtils!.CreatePropModel(pos!, ang!, mat, prop.isOnGround, prop.ModelGroupIndex, prop.Id);
+                Server.NextFrame(() => EditSpecificProp(p, prop));
+            });
         }
-        menu.PrevMenu = prevMenu;
-        menu.Display(player, 0);
+
+        menu.AddMenuOption($"← {_plugin.Localizer["Menu_Back"]}", (p, o) => EditSpecificProp(p, prop));
+        menu.Open(player);
     }
 }

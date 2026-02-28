@@ -13,7 +13,6 @@ namespace MapAdvertisements.Managers
         public string? _mapName;
         public string? _mapFilePath;
         public readonly List<PropModel> _props = [];
-        public readonly List<PropModel> _newPropModels = [];
         private static readonly object _fileLock = new();
 
         public void GenerateJsonFile()
@@ -22,13 +21,9 @@ namespace MapAdvertisements.Managers
             try
             {
                 if (!Directory.Exists(directoryPath))
-                {
                     Directory.CreateDirectory(directoryPath);
-                }
                 if (!File.Exists(_mapFilePath))
-                {
                     File.WriteAllText(_mapFilePath!, "[]");
-                }
             }
             catch (Exception e)
             {
@@ -36,18 +31,18 @@ namespace MapAdvertisements.Managers
             }
         }
 
-        public PropModel? PushCordsToFile(Vector pos, QAngle angle, string ModelPath, float width, float height, bool forceToVip, int depth, bool isOnGround, int ModelGroupIndex, CBaseEntity entityProp)
+        public PropModel? PushCordsToFile(Vector pos, QAngle angle, string modelPath, float width, float height, int depth, bool isOnGround, int modelGroupIndex, CBaseEntity entityProp)
         {
             lock (_fileLock)
             {
                 if (pos == null || angle == null) return null;
-                int newId = _props.Count();
+                int newId = _props.Count;
 
                 var model = new PropModel
                 {
                     Id = newId,
-                    modelPath = ModelPath,
-                    ModelGroupIndex = ModelGroupIndex,
+                    modelPath = modelPath,
+                    ModelGroupIndex = modelGroupIndex,
                     posX = pos.X,
                     posY = pos.Y,
                     posZ = pos.Z,
@@ -56,7 +51,6 @@ namespace MapAdvertisements.Managers
                     angleZ = angle.Z,
                     width = width,
                     height = height,
-                    forceOnVip = forceToVip,
                     isOnGround = isOnGround,
                     depth = depth,
                     EntityProp = entityProp
@@ -71,17 +65,14 @@ namespace MapAdvertisements.Managers
 
         public void LoadPropsFromMap()
         {
-            if (File.Exists(_mapFilePath))
+            if (!File.Exists(_mapFilePath)) return;
+            string json = File.ReadAllText(_mapFilePath);
+            if (!string.IsNullOrEmpty(json))
             {
-                string json = File.ReadAllText(_mapFilePath);
-                if (!string.IsNullOrEmpty(json))
-                {
-                    _props.Clear();
-                    var loadedProps = JsonSerializer.Deserialize<List<PropModel>>(json) ?? [];
-                    _props.AddRange(loadedProps);
-                }
+                _props.Clear();
+                var loaded = JsonSerializer.Deserialize<List<PropModel>>(json) ?? [];
+                _props.AddRange(loaded);
             }
-
         }
 
         public void SpawnProps()
@@ -90,35 +81,32 @@ namespace MapAdvertisements.Managers
             {
                 if (_plugin.PluginUtils!.CheckMaterial(prop.modelPath!))
                 {
-                    var ent = _plugin.PluginUtils!.CreatePropModel(new Vector(prop.posX, prop.posY, prop.posZ), new QAngle(prop.angleX, prop.angleY, prop.angleZ), prop.modelPath!, prop.forceOnVip, prop.isOnGround ? true : false, prop.ModelGroupIndex, prop.Id);
-                    if (ent != null)
-                    {
-                        prop.EntityProp = ent;
-                    }
+                    var ent = _plugin.PluginUtils.CreatePropModel(
+                        new Vector(prop.posX, prop.posY, prop.posZ),
+                        new QAngle(prop.angleX, prop.angleY, prop.angleZ),
+                        prop.modelPath!, prop.isOnGround, prop.ModelGroupIndex, prop.Id);
+                    if (ent != null) prop.EntityProp = ent;
                 }
                 else
                 {
-                    var ent = _plugin.PluginUtils!.CreateDecal(new Vector(prop.posX, prop.posY, prop.posZ), new QAngle(prop.angleX, prop.angleY, prop.angleZ), prop.modelPath!, prop.width, prop.height, prop.forceOnVip, prop.depth);
-                    if (ent != null)
-                    {
-                        prop.EntityProp = ent;
-                    }
+                    var ent = _plugin.PluginUtils.CreateDecal(
+                        new Vector(prop.posX, prop.posY, prop.posZ),
+                        new QAngle(prop.angleX, prop.angleY, prop.angleZ),
+                        prop.modelPath!, prop.width, prop.height, prop.depth);
+                    if (ent != null) prop.EntityProp = ent;
                 }
             }
         }
 
-        public PropModel? GetPropById(int id)
-        {
-            return id >= 0 && id < _props.Count ? _props[id] : null;
-        }
+        public PropModel? GetPropById(int id) =>
+            id >= 0 && id < _props.Count ? _props[id] : null;
+
         public void RemovePropFromFile(int id)
         {
             _props.RemoveAt(id);
-
             for (int i = 0; i < _props.Count; i++)
-            {
                 _props[i].Id = i;
-            }
+
             var options = new JsonSerializerOptions { WriteIndented = true };
             File.WriteAllText(_mapFilePath!, JsonSerializer.Serialize(_props, options));
         }
@@ -128,7 +116,6 @@ namespace MapAdvertisements.Managers
             if (entity == null || !entity.IsValid) return;
             var pos = entity.AbsOrigin;
             var ang = entity.AbsRotation;
-
             if (pos == null || ang == null) return;
 
             prop.posX = pos.X; prop.posY = pos.Y; prop.posZ = pos.Z;
@@ -141,7 +128,6 @@ namespace MapAdvertisements.Managers
                 prop.height = ent.Height;
             }
 
-
             var options = new JsonSerializerOptions { WriteIndented = true };
             File.WriteAllText(_mapFilePath!, JsonSerializer.Serialize(_props, options));
         }
@@ -151,22 +137,14 @@ namespace MapAdvertisements.Managers
             foreach (var prop in _props)
             {
                 var entity = prop.EntityProp;
-                if (entity == null || !entity.IsValid)
-                    continue;
+                if (entity == null || !entity.IsValid) continue;
 
                 var pos = entity.AbsOrigin;
                 var ang = entity.AbsRotation;
+                if (pos == null || ang == null) continue;
 
-                if (pos == null || ang == null)
-                    continue;
-
-                prop.posX = pos.X;
-                prop.posY = pos.Y;
-                prop.posZ = pos.Z;
-
-                prop.angleX = ang.X;
-                prop.angleY = ang.Y;
-                prop.angleZ = ang.Z;
+                prop.posX = pos.X; prop.posY = pos.Y; prop.posZ = pos.Z;
+                prop.angleX = ang.X; prop.angleY = ang.Y; prop.angleZ = ang.Z;
 
                 if (entity is CEnvDecal decal)
                 {

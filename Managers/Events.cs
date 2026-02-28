@@ -1,7 +1,7 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
-using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Utils;
+using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 
 namespace MapAdvertisements.Managers;
@@ -9,13 +9,12 @@ namespace MapAdvertisements.Managers;
 public class EventManager(MapAdvertisements plugin)
 {
     private readonly MapAdvertisements _plugin = plugin;
+
     public void RegisterEvents()
     {
-        //Events:
         _plugin.RegisterEventHandler<EventRoundStart>(OnRoundStart);
         _plugin.RegisterEventHandler<EventPlayerPing>(OnPlayerPing);
 
-        //Listeners:
         _plugin.RegisterListener<Listeners.OnServerPrecacheResources>((ResourceManifest manifest) =>
         {
             foreach (var prop in _plugin.Config.Props)
@@ -24,7 +23,6 @@ public class EventManager(MapAdvertisements plugin)
             }
         });
         _plugin.RegisterListener<Listeners.OnMapStart>(OnMapStart);
-        _plugin.RegisterListener<Listeners.CheckTransmit>(OnCheckTransmit);
         _plugin.RegisterListener<Listeners.OnTick>(OnTick);
         _plugin.AddCommandListener("say", OnPlayerChatListener);
         _plugin.AddCommandListener("say_team", OnPlayerChatListener);
@@ -32,9 +30,9 @@ public class EventManager(MapAdvertisements plugin)
 
     private void OnTick()
     {
-        foreach(var player in _plugin.MenuManager!._selectedMaterial)
+        foreach (var player in _plugin.MenuManager!._selectedMaterial)
         {
-            if(player.Value.onPing)
+            if (player.Value.onPing)
             {
                 player.Key.PrintToCenterHtml($"{_plugin.Localizer["OnTickNotification", player.Value.material!]}");
             }
@@ -45,27 +43,21 @@ public class EventManager(MapAdvertisements plugin)
     {
         if (player == null) return HookResult.Continue;
         if (!AdminManager.PlayerHasPermissions(player, _plugin.Config.AdminFlag) || !_plugin.MenuManager!._listenForChat.ContainsKey(player))
-        {
             return HookResult.Continue;
-        }
+
         var msg = commandInfo.GetArg(1);
-        if(string.IsNullOrWhiteSpace(msg)) return HookResult.Continue;
-        if(!int.TryParse(msg, out int value))
+        if (string.IsNullOrWhiteSpace(msg)) return HookResult.Continue;
+        if (!int.TryParse(msg, out int value))
         {
             player.PrintToChat($"{_plugin.Localizer["Prefix"]}{_plugin.Localizer["NoArg"]}");
             return HookResult.Continue;
         }
 
         _plugin.MenuManager._listenForChat[player].ModelGroupIndex = value;
-        
-        player.PrintToChat($"{_plugin.Localizer["Prefix"]}{_plugin.Localizer[$"PlayerSelectedSkin", value]}");
-
+        player.PrintToChat($"{_plugin.Localizer["Prefix"]}{_plugin.Localizer["PlayerSelectedSkin", value]}");
         _plugin.MenuManager._listenForChat[player].EntityProp!.AcceptInput("Skin", _plugin.MenuManager._listenForChat[player].EntityProp, _plugin.MenuManager._listenForChat[player].EntityProp, value.ToString());
 
-        Server.NextFrame(() =>
-        {
-            _plugin.MenuManager._listenForChat.Remove(player);
-        });
+        Server.NextFrame(() => _plugin.MenuManager._listenForChat.Remove(player));
 
         return HookResult.Continue;
     }
@@ -83,77 +75,26 @@ public class EventManager(MapAdvertisements plugin)
         if (player == null) return HookResult.Continue;
 
         if (!AdminManager.PlayerHasPermissions(player, _plugin.Config.AdminFlag) || !_plugin.MenuManager!._selectedMaterial.TryGetValue(player, out var selected))
-        {
             return HookResult.Continue;
-        }
 
         var pawn = player.PlayerPawn.Value;
         if (pawn == null) return HookResult.Continue;
-
         if (!selected!.onPing) return HookResult.Continue;
-        if(_plugin.PluginUtils!.CheckMaterial(selected.material!))
+
+        if (_plugin.PluginUtils!.CheckMaterial(selected.material!))
         {
-            _plugin.PluginUtils!.CreatePropModelOnClick(new Vector(ping.X, ping.Y, ping.Z), new QAngle(pawn.EyeAngles.X, pawn.EyeAngles.Y, pawn.EyeAngles.Z), selected.material!, selected.isVip, selected.isOnGround, selected.materialIndex);
+            _plugin.PluginUtils!.CreatePropModelOnClick(
+                new CounterStrikeSharp.API.Modules.Utils.Vector(ping.X, ping.Y, ping.Z),
+                new CounterStrikeSharp.API.Modules.Utils.QAngle(pawn.EyeAngles.X, pawn.EyeAngles.Y, pawn.EyeAngles.Z),
+                selected.material!, selected.isOnGround, selected.materialIndex);
         }
         else
         {
-            _plugin.PluginUtils!.CreateDecalOnClick(player, new Vector(ping.X, ping.Y, ping.Z));
+            _plugin.PluginUtils!.CreateDecalOnClick(player, new CounterStrikeSharp.API.Modules.Utils.Vector(ping.X, ping.Y, ping.Z));
         }
-        
+
         return HookResult.Continue;
     }
-
-    private void OnCheckTransmit(CCheckTransmitInfoList infoList)
-    {
-        var decals = Utilities.FindAllEntitiesByDesignerName<CEnvDecal>("env_decal");
-        var props = Utilities.FindAllEntitiesByDesignerName<CPhysicsPropOverride>("prop_physics_override");
-
-        var allAdvs = new List<CBaseEntity>();
-
-        if(decals != null) allAdvs.AddRange(decals);
-        if(props != null) allAdvs.AddRange(props);
-
-        if(!allAdvs.Any()) return;
-
-        if (allAdvs == null || !allAdvs.Any()) return;
-        try
-        {
-            foreach (var entry in infoList)
-            {
-                CCheckTransmitInfo info;
-                CCSPlayerController? player;
-
-                try
-                {
-                    (info, player) = ((CCheckTransmitInfo, CCSPlayerController))entry;
-                }
-                catch
-                {
-                    continue;
-                }
-
-                if (player == null) continue;
-
-                if (AdminManager.PlayerHasPermissions(player, _plugin.Config.VipFlag))
-                {
-                    foreach (var ad in allAdvs)
-                    {
-                        if (ad.Entity!.Name == null) continue;
-                        if (ad!.Entity!.Name.StartsWith("advert") && ad!.Entity!.Name.Contains("force"))
-                        {
-                            info.TransmitEntities.Remove(ad);
-                        }
-                    }
-                }
-            }
-        }
-        catch (Exception error)
-        {
-            _plugin.DebugMode($"CheckTransmit: ${error}");
-        }
-
-    }
-
 
     private void OnMapStart(string mapName)
     {
@@ -161,14 +102,9 @@ public class EventManager(MapAdvertisements plugin)
         Server.NextFrame(() =>
         {
             _plugin.PropManager._mapName = mapName;
-            _plugin.PropManager!._mapFilePath = Path.Combine(_plugin.ModuleDirectory, "maps", $"{mapName}.json");
-
+            _plugin.PropManager._mapFilePath = Path.Combine(_plugin.ModuleDirectory, "maps", $"{mapName}.json");
             _plugin.PropManager.GenerateJsonFile();
-            Server.NextFrame(() =>
-            {
-                _plugin.PropManager.LoadPropsFromMap();
-            });
+            Server.NextFrame(() => _plugin.PropManager.LoadPropsFromMap());
         });
     }
-
 }

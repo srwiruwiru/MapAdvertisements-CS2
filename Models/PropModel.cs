@@ -16,9 +16,8 @@ namespace MapAdvertisements.Models
         public float angleZ { get; set; }
         public float width { get; set; }
         public float height { get; set; }
-        public bool forceOnVip { get; set; }
         public bool isOnGround { get; set; }
-        public int depth { get; set; } 
+        public int depth { get; set; }
 
         [JsonIgnore]
         public CBaseEntity? EntityProp { get; set; }

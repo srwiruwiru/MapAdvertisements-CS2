@@ -1,6 +1,7 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
+using MenuManager;
 
 using MapAdvertisements.Models;
 
@@ -12,37 +13,23 @@ public partial class PluginMenu(MapAdvertisements plugin)
 
     public Dictionary<CCSPlayerController, SelectedMaterialModel> _selectedMaterial = new();
     public Dictionary<CCSPlayerController, PropModel> _listenForChat = new();
-    private string[] _retardedWayCords = ["X+", "X-", "Y+", "Y-", "Z+", "Z-"];
-    private int[] _decalSize = [16, 32, 64, 128, 256, 512, 1024];
+
+    private readonly string[] _directions = ["X+", "X-", "Y+", "Y-", "Z+", "Z-"];
+    private readonly int[] _decalSize = [16, 32, 64, 128, 256, 512, 1024];
+
     public void ShowMapAdvertMenu(CCSPlayerController player)
     {
-        if (player == null) return;
-        WasdMenu menu = new($"{_plugin.Localizer["MapAdvertMenu_Header"]}", _plugin);
-        menu.AddItem($"{_plugin.Localizer["CreatePropMenu"]}", (p, o) =>
-        {
-            CreatePropMenu(player, menu);
-        });
-        menu.AddItem($"{_plugin.Localizer["CreateDecalMenu"]}", (p, o) =>
-        {
-            CreateDecalMenu(player, menu);
-        });
+        var api = _plugin.MenuApi;
+        if (api == null) return;
 
-        menu.AddItem($"{_plugin.Localizer["EditPropsMenu"]}", (p, o) =>
-        {
-            EditPropsMenu(player, menu);
-        });
+        var menu = api.GetMenu(_plugin.Localizer["MapAdvertMenu_Header"]);
+        menu.AddMenuOption(_plugin.Localizer["CreatePropMenu"], (p, o) => CreatePropMenu(p));
+        menu.AddMenuOption(_plugin.Localizer["CreateDecalMenu"], (p, o) => CreateDecalMenu(p));
+        menu.AddMenuOption(_plugin.Localizer["EditPropsMenu"], (p, o) => EditPropsMenu(p));
+        menu.AddMenuOption(_plugin.Localizer["EditDecalsMenu"], (p, o) => EditDecalMenu(p));
+        menu.AddMenuOption(_plugin.Localizer["RemoveAdvertsMenu"], (p, o) => RemoveAdvertsMenu(p));
 
-        menu.AddItem($"{_plugin.Localizer["EditDecalsMenu"]}", (p, o) =>
-        {
-            EditDecalMenu(player, menu);
-        });
-
-        menu.AddItem($"{_plugin.Localizer["RemoveAdvertsMenu"]}", (p, o) =>
-        {
-            RemoveAdvertsMenu(player, menu);
-        });
-
-        menu.AddItem($"{_plugin.Localizer["SaveAdvertsMenu"]}", (p, o) =>
+        menu.AddMenuOption(_plugin.Localizer["SaveAdvertsMenu"], (p, o) =>
         {
             try
             {
@@ -54,107 +41,92 @@ public partial class PluginMenu(MapAdvertisements plugin)
                 p.PrintToChat($"{_plugin.Localizer["Prefix"]}{_plugin.Localizer["SavedAdvertsError"]}");
                 _plugin.DebugMode($"{error}");
             }
-
         });
 
-        menu.AddItem($"{_plugin.Localizer["ClearCacheMenu"]}", (p, o) =>
-        {
-            if (!_plugin.MenuManager!._selectedMaterial.ContainsKey(p)) return;
-            _plugin.MenuManager._selectedMaterial.Remove(p);
-
-        });
-
-        menu.Display(player, 0);
+        menu.AddMenuOption(_plugin.Localizer["ClearCacheMenu"], (p, o) => _plugin.MenuManager!._selectedMaterial.Remove(p));
+        menu.Open(player);
     }
 
-    private void RemoveAdvertsMenu(CCSPlayerController player, WasdMenu prevMenu)
+    private void RemoveAdvertsMenu(CCSPlayerController player)
     {
-        if (player == null) return;
-        var pawn = player.PlayerPawn.Value;
-        if (pawn == null || !pawn.IsValid) return;
+        var api = _plugin.MenuApi;
+        if (api == null) return;
 
-        WasdMenu menu = new($"{_plugin.Localizer["RemoveAdvert_Header"]}", _plugin);
-
+        var menu = api.GetMenu(_plugin.Localizer["RemoveAdvert_Header"]);
         foreach (var adv in _plugin.PropManager!._props)
         {
-            menu.AddItem($"{adv.Id}", (p, o) =>
+            var captured = adv;
+            menu.AddMenuOption($"#{captured.Id} — {captured.modelPath}", (p, o) =>
             {
-                _plugin.PropManager.RemovePropFromFile(adv.Id);
-                player.PrintToChat($"{_plugin.Localizer["SuccessRemove", adv.Id]}");
-                o.PostSelectAction = PostSelectAction.Close;
-                Server.NextFrame(() =>
-                {
-                    ShowMapAdvertMenu(player);
-                });
+                _plugin.PropManager.RemovePropFromFile(captured.Id);
+                p.PrintToChat($"{_plugin.Localizer["SuccessRemove", captured.Id]}");
+                Server.NextFrame(() => ShowMapAdvertMenu(p));
             });
         }
 
-        menu.PrevMenu = prevMenu;
-        menu.Display(player, 0);
+        menu.AddMenuOption($"← {_plugin.Localizer["Menu_Back"]}", (p, o) => ShowMapAdvertMenu(p));
+        menu.Open(player);
     }
 
-    private void CordsMenu(CCSPlayerController player, WasdMenu prevMenu, PropModel prop, int propId, int _type)
+    public void CordsMenu(CCSPlayerController player, PropModel prop, int propId, int type, Action<CCSPlayerController> onBack)
     {
-        if (player == null) return;
-        var pawn = player.PlayerPawn.Value;
-        if (pawn == null || !pawn.IsValid) return;
+        var api = _plugin.MenuApi;
+        if (api == null) return;
 
         var entity = prop.EntityProp;
         if (entity == null) return;
 
-        WasdMenu menu = new($"{_plugin.Localizer[$"CordsFor_{_type}", propId]} ", _plugin);
-
-        if (_type == 0)
+        var menu = api.GetMenu(_plugin.Localizer[$"CordsFor_{type}", propId]);
+        if (type == 0)
         {
             foreach (var v in _plugin.Config.customPositionValues)
             {
-                foreach (var i in _retardedWayCords)
+                foreach (var dir in _directions)
                 {
-                    menu.AddItem($"{i} {v}", (p, o) =>
+                    var cv = v; var cd = dir;
+                    menu.AddMenuOption($"{cd} {cv}", (p, o) =>
                     {
-                        var pos = entity!.AbsOrigin!;
-                        var newPos = new Vector(pos.X, pos.Y, pos.Z);
-
-                        if (i == "X+") newPos = new Vector(pos.X + v, pos.Y, pos.Z);
-                        else if (i == "X-") newPos = new Vector(pos.X - v, pos.Y, pos.Z);
-                        else if (i == "Y+") newPos = new Vector(pos.X, pos.Y + v, pos.Z);
-                        else if (i == "Y-") newPos = new Vector(pos.X, pos.Y - v, pos.Z);
-                        else if (i == "Z+") newPos = new Vector(pos.X, pos.Y, pos.Z + v);
-                        else if (i == "Z-") newPos = new Vector(pos.X, pos.Y, pos.Z - v);
-
-                        entity.Teleport(newPos, entity.AbsRotation);
-                        o.PostSelectAction = PostSelectAction.Nothing;
+                        var pos = entity.AbsOrigin!;
+                        entity.Teleport(cd switch
+                        {
+                            "X+" => new Vector(pos.X + cv, pos.Y, pos.Z),
+                            "X-" => new Vector(pos.X - cv, pos.Y, pos.Z),
+                            "Y+" => new Vector(pos.X, pos.Y + cv, pos.Z),
+                            "Y-" => new Vector(pos.X, pos.Y - cv, pos.Z),
+                            "Z+" => new Vector(pos.X, pos.Y, pos.Z + cv),
+                            "Z-" => new Vector(pos.X, pos.Y, pos.Z - cv),
+                            _ => new Vector(pos.X, pos.Y, pos.Z)
+                        }, entity.AbsRotation);
                     });
                 }
             }
-
         }
-        else if (_type == 1)
+        else if (type == 1)
         {
             foreach (var v in _plugin.Config.customAngleValues)
             {
-                foreach (var i in _retardedWayCords)
+                foreach (var dir in _directions)
                 {
-                    menu.AddItem($"{i} {v}", (p, o) =>
+                    var cv = v; var cd = dir;
+                    menu.AddMenuOption($"{cd} {cv}", (p, o) =>
                     {
-                        var angles = entity!.AbsRotation!;
-                        var newQangle = new QAngle(angles.X, angles.Y, angles.Z);
-
-                        if (i == "X+") newQangle = new QAngle(angles.X + v, angles.Y, angles.Z);
-                        else if (i == "X-") newQangle = new QAngle(angles.X - v, angles.Y, angles.Z);
-                        else if (i == "Y+") newQangle = new QAngle(angles.X, angles.Y + v, angles.Z);
-                        else if (i == "Y-") newQangle = new QAngle(angles.X, angles.Y - v, angles.Z);
-                        else if (i == "Z+") newQangle = new QAngle(angles.X, angles.Y, angles.Z + v);
-                        else if (i == "Z-") newQangle = new QAngle(angles.X, angles.Y, angles.Z - v);
-
-                        entity.Teleport(entity.AbsOrigin, newQangle);
-                        o.PostSelectAction = PostSelectAction.Nothing;
-
+                        var ang = entity.AbsRotation!;
+                        entity.Teleport(entity.AbsOrigin, cd switch
+                        {
+                            "X+" => new QAngle(ang.X + cv, ang.Y, ang.Z),
+                            "X-" => new QAngle(ang.X - cv, ang.Y, ang.Z),
+                            "Y+" => new QAngle(ang.X, ang.Y + cv, ang.Z),
+                            "Y-" => new QAngle(ang.X, ang.Y - cv, ang.Z),
+                            "Z+" => new QAngle(ang.X, ang.Y, ang.Z + cv),
+                            "Z-" => new QAngle(ang.X, ang.Y, ang.Z - cv),
+                            _ => new QAngle(ang.X, ang.Y, ang.Z)
+                        });
                     });
                 }
             }
         }
-        menu.PrevMenu = prevMenu;
-        menu.Display(player, 0);
+
+        menu.AddMenuOption($"← {_plugin.Localizer["Menu_Back"]}", (p, o) => onBack(p));
+        menu.Open(player);
     }
 }

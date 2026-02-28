@@ -8,9 +8,6 @@ namespace MapAdvertisements.Config
         [JsonPropertyName("Admin Flag")]
         public string AdminFlag { get; set; } = "@css/root";
 
-        [JsonPropertyName("Vip Flag")]
-        public string VipFlag { get; set; } = "@vip/noadv";
-
         [JsonPropertyName("Props Path")]
         public string[] Props { get; set; } = [];
 
@@ -24,6 +21,6 @@ namespace MapAdvertisements.Config
         public bool EnableCMD { get; set; } = true;
 
         [JsonPropertyName("Debug Mode")]
-        public bool Debug { get; set; } = true;
+        public bool Debug { get; set; } = false;
     }
 }

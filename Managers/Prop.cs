@@ -1,14 +1,15 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using CS2_Poor_MapAdvertisements.Models;
 using System.Text.Json;
 
-namespace CS2_Poor_MapAdvertisements.Managers
+using MapAdvertisements.Models;
+
+namespace MapAdvertisements.Managers
 {
-    public class PropManager(CS2_Poor_MapAdvertisements plugin)
+    public class PropManager(MapAdvertisements plugin)
     {
-        private readonly CS2_Poor_MapAdvertisements _plugin = plugin;
+        private readonly MapAdvertisements _plugin = plugin;
         public string? _mapName;
         public string? _mapFilePath;
         public readonly List<PropModel> _props = [];

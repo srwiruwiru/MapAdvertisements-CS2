@@ -1,24 +1,26 @@
-﻿using CounterStrikeSharp.API.Core;
-using CS2_Poor_MapAdvertisements.Config;
-using CS2_Poor_MapAdvertisements.Managers;
-using CS2_Poor_MapAdvertisements.Menu;
-using CS2_Poor_MapAdvertisements.Utils;
+﻿using CounterStrikeSharp.API;
+using CounterStrikeSharp.API.Core;
+using CounterStrikeSharp.API.Core.Attributes;
 using Microsoft.Extensions.Logging;
 
-namespace CS2_Poor_MapAdvertisements;
-public class CS2_Poor_MapAdvertisements : BasePlugin, IPluginConfig<PluginConfig>
+using MapAdvertisements.Menu;
+using MapAdvertisements.Utils;
+using MapAdvertisements.Config;
+using MapAdvertisements.Managers;
+
+namespace MapAdvertisements;
+
+[MinimumApiVersion(363)]
+public class MapAdvertisements : BasePlugin, IPluginConfig<PluginConfig>
 {
-    public override string ModuleName => "CS2_Poor_MapAdvertisements";
-
-    public override string ModuleVersion => "1.0";
-
-    public override string ModuleAuthor => "Letaryat | github.com/letaryat";
-
+    public override string ModuleName => "MapAdvertisements";
+    public override string ModuleVersion => "1.0.0";
+    public override string ModuleAuthor => "Letaryat (fork by luca.uy)";
     public override string ModuleDescription => "Creates map advertisements.";
 
     public required PluginConfig Config { get; set; }
 
-    public static CS2_Poor_MapAdvertisements? Instance { get; private set; }
+    public static MapAdvertisements? Instance { get; private set; }
 
     public EventManager? EventManager { get; private set; }
     public PropManager? PropManager { get; private set; }
@@ -29,7 +31,7 @@ public class CS2_Poor_MapAdvertisements : BasePlugin, IPluginConfig<PluginConfig
     public PluginMenu? MenuManager {get; private set;}
     public override void Load(bool hotReload)
     {
-        Console.WriteLine("Loaded CS2_Poor_MapAdvertisements");
+        Console.WriteLine("Loaded MapAdvertisements");
         Instance = this;
 
         EventManager = new EventManager(this);
@@ -49,7 +51,7 @@ public class CS2_Poor_MapAdvertisements : BasePlugin, IPluginConfig<PluginConfig
     }
     public override void Unload(bool hotReload)
     {
-        Console.WriteLine("Unloaded CS2_Poor_MapAdvertisements");
+        Console.WriteLine("Unloaded MapAdvertisements");
     }
 
     public void DebugMode(string message)

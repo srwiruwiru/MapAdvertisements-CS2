@@ -1,16 +1,13 @@
-
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using CS2_Poor_MapAdvertisements.Models;
-using CS2MenuManager.API.Enum;
-using CS2MenuManager.API.Menu;
 
-namespace CS2_Poor_MapAdvertisements.Menu;
+using MapAdvertisements.Models;
+
+namespace MapAdvertisements.Menu;
 
 public partial class PluginMenu
 {
-    // Decal menus:
     public void CreateDecalMenu(CCSPlayerController player, WasdMenu? prevMenu)
     {
         if (player == null) return;
@@ -363,7 +360,6 @@ public partial class PluginMenu
 
         WasdMenu menu = new($"{_plugin.Localizer[$"ChangeHeader_{_type}"]} #{propId}", _plugin);
 
-        // _type - 0 Width, 1 - Height
         if (_type == 0)
         {
             foreach (var i in _decalSize)
@@ -459,6 +455,4 @@ public partial class PluginMenu
         menu.PrevMenu = prevMenu;
         menu.Display(player, 0);
     }
-
-
 }

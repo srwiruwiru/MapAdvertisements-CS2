@@ -1,14 +1,14 @@
 ﻿using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Admin;
-using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Utils;
+using CounterStrikeSharp.API.Modules.Commands;
 
-namespace CS2_Poor_MapAdvertisements.Managers;
+namespace MapAdvertisements.Managers;
 
-public class EventManager(CS2_Poor_MapAdvertisements plugin)
+public class EventManager(MapAdvertisements plugin)
 {
-    private readonly CS2_Poor_MapAdvertisements _plugin = plugin;
+    private readonly MapAdvertisements _plugin = plugin;
     public void RegisterEvents()
     {
         //Events:

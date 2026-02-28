@@ -1,21 +1,7 @@
 # CS2-Poor-MapAdvertisements
-
-This plugin allows for server owners to create spray type advertisements that are placed on wall.<br/>
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/H2H8TK0L9)
-
-## [📺] Video presentation
-SoonTM
-<p align="center">
-    <img src="img/1.jpg" width="500">
-</p>
+This plugin allows for server owners to create spray type advertisements that are placed on wall.
 
 ## [📌] Setup
-- Download latest release,
-- Download [CS2MenuManager by schwarper](https://github.com/schwarper/CS2MenuManager) - For menu API.
-- Drag files to /plugins/
-- Restart your server,
-- Config file should be created in configs/plugins/
-- Edit to your liking,
 
 ## [📝] Configuration
 | Option  | Description |
@@ -52,12 +38,3 @@ Tried to make plugin idiot proof (since I did a lot of mistakes).
 | Command  | Description |
 | ------------- | ------------- |
 | css_mapadverts | Menu that allows to setup advertisements |
-
-
-## [❤️] Special thanks to:
-- [CS2-SkyboxChanger by samyycX](https://github.com/samyycX/CS2-SkyboxChanger) - For function to find id of cached material.
-- [Edgegamers JailBreak](https://github.com/edgegamers/Jailbreak/blob/main/mod/Jailbreak.Warden/Paint/WardenPaintBehavior.cs#L131) - For function to check if player is looking at his pretty feet.
-- [CS2MenuManager](https://github.com/schwarper/CS2MenuManager) - For menu API.
-- [f3nixCoding](https://github.com/f3nixCodings) - For updated function with keyvalues for decals.
-
-### [🚨] Plugin might be poorly written and have some issues. I have no idea what I am doing, but when tested it worked fine.

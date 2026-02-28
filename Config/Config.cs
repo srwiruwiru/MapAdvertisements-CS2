@@ -1,8 +1,7 @@
 ﻿using CounterStrikeSharp.API.Core;
 using System.Text.Json.Serialization;
 
-
-namespace CS2_Poor_MapAdvertisements.Config
+namespace MapAdvertisements.Config
 {
     public class PluginConfig : BasePluginConfig
     {
@@ -26,6 +25,5 @@ namespace CS2_Poor_MapAdvertisements.Config
 
         [JsonPropertyName("Debug Mode")]
         public bool Debug { get; set; } = true;
-
     }
 }

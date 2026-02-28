@@ -1,12 +1,11 @@
 ﻿using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 
+namespace MapAdvertisements.Utils;
 
-namespace CS2_Poor_MapAdvertisements.Utils;
-
-public partial class PluginUtils(CS2_Poor_MapAdvertisements plugin)
+public partial class PluginUtils(MapAdvertisements plugin)
 {
-    private readonly CS2_Poor_MapAdvertisements _plugin = plugin;
+    private readonly MapAdvertisements _plugin = plugin;
 
     public Vector GetForwardVector(QAngle angles)
     {
@@ -23,8 +22,6 @@ public partial class PluginUtils(CS2_Poor_MapAdvertisements plugin)
 
     private float GetPlayerEyeVector(CCSPlayerPawn pawn)
     {
-        // Credits to: 
-        // https://github.com/edgegamers/Jailbreak/blob/main/mod/Jailbreak.Warden/Paint/WardenPaintBehavior.cs#L131
         if (pawn == null || !pawn.IsValid) return 0;
         var eyeAngle = pawn.EyeAngles;
         var pitch = Math.PI / 180 * eyeAngle.X;

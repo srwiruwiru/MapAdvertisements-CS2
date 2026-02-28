@@ -1,12 +1,10 @@
-
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using CS2_Poor_MapAdvertisements.Models;
-using CS2MenuManager.API.Enum;
-using CS2MenuManager.API.Menu;
 
-namespace CS2_Poor_MapAdvertisements.Menu;
+using MapAdvertisements.Models;
+
+namespace MapAdvertisements.Menu;
 
 public partial class PluginMenu
 {
@@ -254,5 +252,4 @@ public partial class PluginMenu
         menu.PrevMenu = prevMenu;
         menu.Display(player, 0);
     }
-
 }

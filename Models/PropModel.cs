@@ -1,7 +1,7 @@
-﻿using System.Text.Json.Serialization;
-using CounterStrikeSharp.API.Core;
+﻿using CounterStrikeSharp.API.Core;
+using System.Text.Json.Serialization;
 
-namespace CS2_Poor_MapAdvertisements.Models
+namespace MapAdvertisements.Models
 {
     public class PropModel
     {
@@ -22,6 +22,5 @@ namespace CS2_Poor_MapAdvertisements.Models
 
         [JsonIgnore]
         public CBaseEntity? EntityProp { get; set; }
-
     }
 }

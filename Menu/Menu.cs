@@ -1,15 +1,14 @@
 using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
-using CS2_Poor_MapAdvertisements.Models;
-using CS2MenuManager.API.Enum;
-using CS2MenuManager.API.Menu;
 
-namespace CS2_Poor_MapAdvertisements.Menu;
+using MapAdvertisements.Models;
 
-public partial class PluginMenu(CS2_Poor_MapAdvertisements plugin)
+namespace MapAdvertisements.Menu;
+
+public partial class PluginMenu(MapAdvertisements plugin)
 {
-    private readonly CS2_Poor_MapAdvertisements _plugin = plugin;
+    private readonly MapAdvertisements _plugin = plugin;
 
     public Dictionary<CCSPlayerController, SelectedMaterialModel> _selectedMaterial = new();
     public Dictionary<CCSPlayerController, PropModel> _listenForChat = new();
@@ -105,8 +104,6 @@ public partial class PluginMenu(CS2_Poor_MapAdvertisements plugin)
 
         WasdMenu menu = new($"{_plugin.Localizer[$"CordsFor_{_type}", propId]} ", _plugin);
 
-        // _type - 0 Position, 1 - Angles, 2 - Config angles values, 3 - Config position values
-
         if (_type == 0)
         {
             foreach (var v in _plugin.Config.customPositionValues)
@@ -160,5 +157,4 @@ public partial class PluginMenu(CS2_Poor_MapAdvertisements plugin)
         menu.PrevMenu = prevMenu;
         menu.Display(player, 0);
     }
-
 }

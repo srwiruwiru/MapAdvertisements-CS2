@@ -2,7 +2,7 @@ using CounterStrikeSharp.API;
 using CounterStrikeSharp.API.Core;
 using CounterStrikeSharp.API.Modules.Utils;
 
-namespace CS2_Poor_MapAdvertisements.Utils;
+namespace MapAdvertisements.Utils;
 
 public partial class PluginUtils
 {
@@ -42,7 +42,6 @@ public partial class PluginUtils
         {
             entity.Entity!.Name += "_force";
         }
-        //QAngle qangle = new QAngle(0, angle.Y, 0);
         entity.CBodyComponent!.SceneNode!.Owner!.Entity!.Flags &= ~(uint)(1 << 2);
         entity.SetModel(material);
         entity.Teleport(new Vector(cords.X, cords.Y, cords.Z), angle);
@@ -58,7 +57,6 @@ public partial class PluginUtils
         entity!.DispatchSpawn();
 
         var model = _plugin.PropManager!.PushCordsToFile(cords, angle, material, 0, 0, forceOnVip, 0, onGround, materialIndex, entity);
-
         if(entity != null)
         {
             model!.EntityProp = entity;
@@ -66,5 +64,4 @@ public partial class PluginUtils
 
         return entity;
     }
-
 }

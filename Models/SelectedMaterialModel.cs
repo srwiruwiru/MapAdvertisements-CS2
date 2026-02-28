@@ -1,4 +1,4 @@
-namespace CS2_Poor_MapAdvertisements.Models
+namespace MapAdvertisements.Models
 {
     public class SelectedMaterialModel
     {

@@ -43,7 +43,7 @@
   "SavedProp": "{green}Guardado {default}exitosamente el prop con id: {orange}{0}",
   "ChangeHeader_0": "Cambiar Ancho",
   "ChangeHeader_1": "Cambiar Alto",
-  "OnTickNotification": "<div class=\"fontSize-l\" style=\"text-align: center; padding: 5px;\"><font color=\"#FFFFFF\">¡Crear publicidades al hacer ping está ACTIVO! Material:</font><br><font color=\"#03FC0B\" class=\"fontSize-l\">{0}</font>",
+  "PingModeEnabled": "{orange}Modo ping activado. Haz ping en el mapa para colocar: {green}{0}",
   "SaveAdvertsMenu": "Guardar todas las publicidades",
   "SavedAdverts": "Todas las publicidades guardadas {green}exitosamente.",
   "SavedAdvertsError": "{red}Algo salió mal. Revisá los logs.",

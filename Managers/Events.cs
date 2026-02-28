@@ -23,20 +23,8 @@ public class EventManager(MapAdvertisements plugin)
             }
         });
         _plugin.RegisterListener<Listeners.OnMapStart>(OnMapStart);
-        _plugin.RegisterListener<Listeners.OnTick>(OnTick);
         _plugin.AddCommandListener("say", OnPlayerChatListener);
         _plugin.AddCommandListener("say_team", OnPlayerChatListener);
-    }
-
-    private void OnTick()
-    {
-        foreach (var player in _plugin.MenuManager!._selectedMaterial)
-        {
-            if (player.Value.onPing)
-            {
-                player.Key.PrintToCenterHtml($"{_plugin.Localizer["OnTickNotification", player.Value.material!]}");
-            }
-        }
     }
 
     private HookResult OnPlayerChatListener(CCSPlayerController? player, CommandInfo commandInfo)

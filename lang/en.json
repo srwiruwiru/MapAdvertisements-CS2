@@ -43,7 +43,7 @@
   "SavedProp": "{green}Successfully {default}saved prop with id: {orange}{0}",
   "ChangeHeader_0": "Change Width",
   "ChangeHeader_1": "Change Height",
-  "OnTickNotification": "<div class=\"fontSize-l\" style=\"text-align: center; padding: 5px;\"><font color=\"#FFFFFF\">Creating ads on ping is ENABLED! Material:</font><br><font color=\"#03FC0B\" class=\"fontSize-l\">{0}</font>",
+  "PingModeEnabled": "{orange}Ping mode enabled. Ping on the map to place: {green}{0}",
   "SaveAdvertsMenu": "Save All adverts",
   "SavedAdverts": "All adverts saved {green}successfully!",
   "SavedAdvertsError": "{red}Something went wrong. Check logs.",

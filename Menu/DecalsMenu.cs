@@ -46,6 +46,8 @@ public partial class PluginMenu
         menu.AddMenuOption(_plugin.Localizer["SpawnOnPing", data.onPing], (p, o) =>
         {
             data.onPing = !data.onPing;
+            if (data.onPing)
+                p.PrintToChat($"{_plugin.Localizer["Prefix"]}{_plugin.Localizer["PingModeEnabled", data.material!]}");
             Server.NextFrame(() => CreateDecalMenu(p));
         }, disabled: data.material == null);
 
@@ -201,12 +203,12 @@ public partial class PluginMenu
                 var old = entity.As<CEnvDecal>();
                 var pos = old.AbsOrigin;
                 var ang = old.AbsRotation;
-                var width  = type == 0 ? s : old.Width;
+                var width = type == 0 ? s : old.Width;
                 var height = type == 1 ? s : old.Height;
                 old.Remove();
 
-                if (type == 0) prop.width  = s;
-                else           prop.height = s;
+                if (type == 0) prop.width = s;
+                else prop.height = s;
 
                 prop.EntityProp = _plugin.PluginUtils!.CreateDecal(pos!, ang!, prop.modelPath!, width, height, prop.depth);
                 Server.NextFrame(() => EditSpecificDecal(p, prop));

@@ -31,6 +31,8 @@ public partial class PluginMenu
         menu.AddMenuOption(_plugin.Localizer["SpawnOnPing", data.onPing], (p, o) =>
         {
             data.onPing = !data.onPing;
+            if (data.onPing)
+                p.PrintToChat($"{_plugin.Localizer["Prefix"]}{_plugin.Localizer["PingModeEnabled", data.material!]}");
             Server.NextFrame(() => CreatePropMenu(p));
         }, disabled: data.material == null);
 

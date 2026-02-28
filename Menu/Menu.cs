@@ -79,7 +79,7 @@ public partial class PluginMenu(MapAdvertisements plugin)
         var menu = api.GetMenu(_plugin.Localizer[$"CordsFor_{type}", propId]);
         if (type == 0)
         {
-            foreach (var v in _plugin.Config.customPositionValues)
+            foreach (var v in _plugin.Config.CustomPositionValues)
             {
                 foreach (var dir in _directions)
                 {
@@ -103,7 +103,7 @@ public partial class PluginMenu(MapAdvertisements plugin)
         }
         else if (type == 1)
         {
-            foreach (var v in _plugin.Config.customAngleValues)
+            foreach (var v in _plugin.Config.CustomAngleValues)
             {
                 foreach (var dir in _directions)
                 {

@@ -23,6 +23,8 @@ public class EventManager(MapAdvertisements plugin)
             }
         });
         _plugin.RegisterListener<Listeners.OnMapStart>(OnMapStart);
+        _plugin.RegisterListener<Listeners.OnMapEnd>(OnMapEnd);
+
         _plugin.AddCommandListener("say", OnPlayerChatListener);
         _plugin.AddCommandListener("say_team", OnPlayerChatListener);
     }
@@ -88,13 +90,21 @@ public class EventManager(MapAdvertisements plugin)
 
     private void OnMapStart(string mapName)
     {
-        _plugin.PropManager!._props.Clear();
         Server.NextFrame(() =>
         {
-            _plugin.PropManager._mapName = mapName;
+            _plugin.PropManager!._mapName = mapName;
             _plugin.PropManager._mapFilePath = Path.Combine(_plugin.ModuleDirectory, "maps", $"{mapName}.json");
             _plugin.PropManager.GenerateJsonFile();
-            Server.NextFrame(() => _plugin.PropManager.LoadPropsFromMap());
+            Server.NextFrame(() => 
+            {
+                _plugin.PropManager.LoadPropsFromMap();
+                _plugin.PropManager.SpawnProps();
+            });
         });
+    }
+
+    private void OnMapEnd()
+    {
+        _plugin.PropManager!._props.Clear();
     }
 }
